@@ -73,15 +73,15 @@ else:
     for inst in instructors:
         iid, fname, lname, email, specialty = inst
         with st.expander(f"{lname}, {fname} — {specialty or 'No specialty listed'}"):
+
+            # ── Edit form ────────────────────────────────────
             with st.form(f"edit_instructor_{iid}"):
                 col1, col2 = st.columns(2)
                 new_first = col1.text_input("First Name", value=fname)
                 new_last = col2.text_input("Last Name", value=lname)
                 new_email = st.text_input("Email", value=email)
                 new_specialty = st.text_input("Specialty", value=specialty or "")
-                col_save, col_del = st.columns(2)
-                save = col_save.form_submit_button("💾 Save Changes")
-                delete = col_del.form_submit_button("🗑️ Delete Instructor")
+                save = st.form_submit_button("💾 Save Changes")
 
             if save:
                 email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
@@ -116,27 +116,28 @@ else:
                     except Exception as e:
                         st.error(f"Error: {e}")
 
-            if delete:
-                # Block delete if instructor is assigned to any class
-                try:
-                    conn = get_connection()
-                    cur = conn.cursor()
-                    cur.execute("SELECT COUNT(*) FROM class WHERE instructorID=%s;", (iid,))
-                    class_count = cur.fetchone()[0]
-                    cur.close()
-                    conn.close()
-                except Exception as e:
-                    st.error(f"Error: {e}")
-                    class_count = 1
+            # ── Delete (outside form) ─────────────────────────
+            st.markdown("**Delete Instructor**")
+            try:
+                conn = get_connection()
+                cur = conn.cursor()
+                cur.execute("SELECT COUNT(*) FROM class WHERE instructorID=%s;", (iid,))
+                class_count = cur.fetchone()[0]
+                cur.close()
+                conn.close()
+            except Exception as e:
+                st.error(f"Error: {e}")
+                class_count = 1
 
-                if class_count > 0:
-                    st.error(f"⚠️ Cannot delete — this instructor is assigned to {class_count} class(es). Reassign or delete those classes first.")
-                else:
-                    confirm = st.checkbox(
-                        f"⚠️ Confirm delete '{fname} {lname}'?",
-                        key=f"confirm_del_instructor_{iid}"
-                    )
-                    if confirm:
+            if class_count > 0:
+                st.error(f"⚠️ Cannot delete — this instructor is assigned to {class_count} class(es). Reassign or delete those classes first.")
+            else:
+                confirm = st.checkbox(
+                    f"⚠️ Check to confirm deletion of '{fname} {lname}'.",
+                    key=f"confirm_del_instructor_{iid}"
+                )
+                if confirm:
+                    if st.button("🗑️ Delete Instructor", key=f"del_btn_instructor_{iid}"):
                         try:
                             conn = get_connection()
                             cur = conn.cursor()
