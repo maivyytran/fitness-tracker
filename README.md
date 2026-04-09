@@ -8,7 +8,7 @@ A web application built with Streamlit and PostgreSQL that allows fitness studio
 
 ## ERD 
 
-<img width="600" height="400" alt="project1_ERD" src="https://github.com/user-attachments/assets/44efc244-adbe-4a07-b81b-68caee3d9e83" />
+<img width="500" height="300" alt="project1_ERD" src="https://github.com/user-attachments/assets/44efc244-adbe-4a07-b81b-68caee3d9e83" />
 
 ## Table Descriptions
 
