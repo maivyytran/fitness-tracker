@@ -95,6 +95,8 @@ else:
     for m in members:
         mid, fname, lname, email, phone, active, plan = m
         with st.expander(f"{lname}, {fname} — {plan} {'✅' if active else '❌'}"):
+
+            # ── Edit form ────────────────────────────────────
             with st.form(f"edit_member_{mid}"):
                 col1, col2 = st.columns(2)
                 new_first = col1.text_input("First Name", value=fname)
@@ -107,9 +109,7 @@ else:
                 current_plan_index = plan_names.index(plan) if plan in plan_names else 0
                 new_plan = st.selectbox("Membership Plan", options=plan_names, index=current_plan_index)
                 new_active = st.checkbox("Active", value=active)
-                col_save, col_del = st.columns(2)
-                save = col_save.form_submit_button("💾 Save Changes")
-                delete = col_del.form_submit_button("🗑️ Delete Member")
+                save = st.form_submit_button("💾 Save Changes")
 
             if save:
                 email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
@@ -146,12 +146,14 @@ else:
                     except Exception as e:
                         st.error(f"Error: {e}")
 
-            if delete:
-                confirm = st.checkbox(
-                    f"⚠️ Confirm delete '{fname} {lname}'? This will also remove all their registrations.",
-                    key=f"confirm_del_member_{mid}"
-                )
-                if confirm:
+            # ── Delete (outside form) ─────────────────────────
+            st.markdown("**Delete Member**")
+            confirm = st.checkbox(
+                f"⚠️ Check to confirm deletion of '{fname} {lname}'. This will also remove all their registrations.",
+                key=f"confirm_del_member_{mid}"
+            )
+            if confirm:
+                if st.button("🗑️ Delete Member", key=f"del_btn_member_{mid}"):
                     try:
                         conn = get_connection()
                         cur = conn.cursor()
