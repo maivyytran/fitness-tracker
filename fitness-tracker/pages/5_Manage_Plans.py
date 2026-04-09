@@ -104,6 +104,8 @@ else:
     for plan in plans:
         pid, pname, price, classes, desc = plan
         with st.expander(f"{pname} — ${price:,.2f}/month — {classes} classes/month"):
+
+            # ── Edit form ────────────────────────────────────
             with st.form(f"edit_plan_{pid}"):
                 new_name = st.text_input("Plan Name", value=pname)
                 col1, col2 = st.columns(2)
@@ -112,9 +114,7 @@ else:
                 new_classes = col2.number_input("Classes Per Month", min_value=1,
                                                  step=1, value=classes)
                 new_desc = st.text_area("Description", value=desc or "", max_chars=500)
-                col_save, col_del = st.columns(2)
-                save = col_save.form_submit_button("💾 Save Changes")
-                delete = col_del.form_submit_button("🗑️ Delete Plan")
+                save = st.form_submit_button("💾 Save Changes")
 
             if save:
                 if not new_name:
@@ -146,30 +146,31 @@ else:
                     except Exception as e:
                         st.error(f"Error: {e}")
 
-            if delete:
-                # Block delete if any active members are on this plan
-                try:
-                    conn = get_connection()
-                    cur = conn.cursor()
-                    cur.execute("""
-                        SELECT COUNT(*) FROM member
-                        WHERE planID=%s AND active = true;
-                    """, (pid,))
-                    active_count = cur.fetchone()[0]
-                    cur.close()
-                    conn.close()
-                except Exception as e:
-                    st.error(f"Error: {e}")
-                    active_count = 1
+            # ── Delete (outside form) ─────────────────────────
+            st.markdown("**Delete Plan**")
+            try:
+                conn = get_connection()
+                cur = conn.cursor()
+                cur.execute("""
+                    SELECT COUNT(*) FROM member
+                    WHERE planID=%s AND active = true;
+                """, (pid,))
+                active_count = cur.fetchone()[0]
+                cur.close()
+                conn.close()
+            except Exception as e:
+                st.error(f"Error: {e}")
+                active_count = 1
 
-                if active_count > 0:
-                    st.error(f"⚠️ Cannot delete — {active_count} active member(s) are on this plan. Reassign them first.")
-                else:
-                    confirm = st.checkbox(
-                        f"⚠️ Confirm delete '{pname}'?",
-                        key=f"confirm_del_plan_{pid}"
-                    )
-                    if confirm:
+            if active_count > 0:
+                st.error(f"⚠️ Cannot delete — {active_count} active member(s) are on this plan. Reassign them first.")
+            else:
+                confirm = st.checkbox(
+                    f"⚠️ Check to confirm deletion of '{pname}'.",
+                    key=f"confirm_del_plan_{pid}"
+                )
+                if confirm:
+                    if st.button("🗑️ Delete Plan", key=f"del_btn_plan_{pid}"):
                         try:
                             conn = get_connection()
                             cur = conn.cursor()
