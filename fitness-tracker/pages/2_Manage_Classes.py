@@ -93,15 +93,14 @@ else:
             instructor_names = list(instructor_options.keys())
             current_instructor_index = instructor_names.index(instructor) if instructor in instructor_names else 0
 
+            # ── Edit form ────────────────────────────────────
             with st.form(f"edit_class_{cid}"):
                 new_name = st.text_input("Class Name", value=cname)
                 new_instructor = st.selectbox("Instructor", options=instructor_names, index=current_instructor_index)
                 new_day = st.selectbox("Day of Week", options=DAYS, index=DAYS.index(day) if day in DAYS else 0)
                 new_time = st.text_input("Class Time", value=time)
                 new_cap = st.number_input("Capacity", min_value=1, step=1, value=cap)
-                col_save, col_del = st.columns(2)
-                save = col_save.form_submit_button("💾 Save Changes")
-                delete = col_del.form_submit_button("🗑️ Delete Class")
+                save = st.form_submit_button("💾 Save Changes")
 
             if save:
                 if not new_name:
@@ -129,12 +128,14 @@ else:
                     except Exception as e:
                         st.error(f"Error: {e}")
 
-            if delete:
-                confirm = st.checkbox(
-                    f"⚠️ Confirm delete '{cname}'? This will also remove all registrations for this class.",
-                    key=f"confirm_del_class_{cid}"
-                )
-                if confirm:
+            # ── Delete (outside form) ─────────────────────────
+            st.markdown("**Delete Class**")
+            confirm = st.checkbox(
+                f"⚠️ Check to confirm deletion of '{cname}'. This will also remove all registrations for this class.",
+                key=f"confirm_del_class_{cid}"
+            )
+            if confirm:
+                if st.button("🗑️ Delete Class", key=f"del_btn_class_{cid}"):
                     try:
                         conn = get_connection()
                         cur = conn.cursor()
