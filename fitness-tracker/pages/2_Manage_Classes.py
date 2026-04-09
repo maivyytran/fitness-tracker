@@ -32,7 +32,9 @@ else:
         selected_instructor = st.selectbox("Instructor", options=list(instructor_options.keys()))
         day_of_week = st.selectbox("Day of Week", options=DAYS)
         class_time = st.text_input("Class Time (e.g. 9:00 AM)")
-        capacity = st.number_input("Capacity", min_value=1, step=1, value=10)
+        col1, col2 = st.columns(2)
+        capacity = col1.number_input("Capacity", min_value=1, step=1, value=10)
+        duration = col2.number_input("Duration (minutes)", min_value=1, step=5, value=60)
         submitted = st.form_submit_button("Add Class")
 
         if submitted:
@@ -44,15 +46,17 @@ else:
                 st.warning("Class time is required.")
             elif capacity < 1:
                 st.warning("Capacity must be at least 1.")
+            elif duration < 1:
+                st.warning("Duration must be at least 1 minute.")
             else:
                 try:
                     conn = get_connection()
                     cur = conn.cursor()
                     cur.execute("""
-                        INSERT INTO class (class_name, instructorID, day_of_week, class_time, capacity)
-                        VALUES (%s, %s, %s, %s, %s);
+                        INSERT INTO class (class_name, instructorID, day_of_week, class_time, capacity, duration)
+                        VALUES (%s, %s, %s, %s, %s, %s);
                     """, (class_name, instructor_options[selected_instructor],
-                          day_of_week, class_time, capacity))
+                          day_of_week, class_time, capacity, duration))
                     conn.commit()
                     cur.close()
                     conn.close()
@@ -70,7 +74,7 @@ try:
     cur = conn.cursor()
     cur.execute("""
         SELECT c.classID, c.class_name, c.day_of_week, c.class_time,
-               c.capacity, i.first_name || ' ' || i.last_name AS instructor
+               c.capacity, c.duration, i.first_name || ' ' || i.last_name AS instructor
         FROM class c
         JOIN instructor i ON c.instructorID = i.instructorID
         ORDER BY c.day_of_week, c.class_time;
@@ -86,8 +90,8 @@ if not classes:
     st.info("No classes yet.")
 else:
     for cls in classes:
-        cid, cname, day, time, cap, instructor = cls
-        with st.expander(f"{cname} — {day} at {time} (Instructor: {instructor})"):
+        cid, cname, day, time, cap, dur, instructor = cls
+        with st.expander(f"{cname} — {day} at {time} — {dur} min (Instructor: {instructor})"):
             instructors = get_instructors()
             instructor_options = {i[1]: i[0] for i in instructors}
             instructor_names = list(instructor_options.keys())
@@ -99,7 +103,9 @@ else:
                 new_instructor = st.selectbox("Instructor", options=instructor_names, index=current_instructor_index)
                 new_day = st.selectbox("Day of Week", options=DAYS, index=DAYS.index(day) if day in DAYS else 0)
                 new_time = st.text_input("Class Time", value=time)
-                new_cap = st.number_input("Capacity", min_value=1, step=1, value=cap)
+                col1, col2 = st.columns(2)
+                new_cap = col1.number_input("Capacity", min_value=1, step=1, value=cap)
+                new_dur = col2.number_input("Duration (minutes)", min_value=1, step=5, value=dur if dur else 60)
                 save = st.form_submit_button("💾 Save Changes")
 
             if save:
@@ -109,6 +115,8 @@ else:
                     st.warning("Class time is required.")
                 elif new_cap < 1:
                     st.warning("Capacity must be at least 1.")
+                elif new_dur < 1:
+                    st.warning("Duration must be at least 1 minute.")
                 else:
                     try:
                         conn = get_connection()
@@ -116,10 +124,10 @@ else:
                         cur.execute("""
                             UPDATE class
                             SET class_name=%s, instructorID=%s, day_of_week=%s,
-                                class_time=%s, capacity=%s
+                                class_time=%s, capacity=%s, duration=%s
                             WHERE classID=%s;
                         """, (new_name, instructor_options[new_instructor],
-                              new_day, new_time, new_cap, cid))
+                              new_day, new_time, new_cap, new_dur, cid))
                         conn.commit()
                         cur.close()
                         conn.close()
