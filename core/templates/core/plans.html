@@ -1,0 +1,63 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<h2>Manage Membership Plans</h2>
+<form method="post" class="mb-4">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="add">
+  <div class="row g-2">
+    <div class="col-md-3"><input type="text" name="plan_name" class="form-control" placeholder="Plan Name" required></div>
+    <div class="col-md-2"><input type="number" name="price_per_month" class="form-control" placeholder="Price/Month" step="0.01" min="0" required></div>
+    <div class="col-md-2"><input type="number" name="classes_per_month" class="form-control" placeholder="Classes/Month" min="1" required></div>
+    <div class="col-md-3"><input type="text" name="description" class="form-control" placeholder="Description (optional)"></div>
+    <div class="col-md-2"><button type="submit" class="btn btn-primary w-100">Add Plan</button></div>
+  </div>
+</form>
+<table class="table table-striped">
+  <thead><tr><th>Plan</th><th>Price/Month</th><th>Classes/Month</th><th>Members Enrolled</th><th>Actions</th></tr></thead>
+  <tbody>
+    {% for p in plans %}
+    <tr>
+      <td>{{ p.plan_name }}</td>
+      <td>${{ p.price_per_month }}</td>
+      <td>{{ p.classes_per_month }}</td>
+      <td>{{ p.member_count }}</td>
+      <td>
+        <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editPlan{{ p.planid }}">Edit</button>
+        <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deletePlan{{ p.planid }}">Delete</button>
+      </td>
+    </tr>
+    <div class="modal fade" id="editPlan{{ p.planid }}" tabindex="-1">
+      <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Edit Plan</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <form method="post">{% csrf_token %}
+          <input type="hidden" name="action" value="edit">
+          <input type="hidden" name="plan_id" value="{{ p.planid }}">
+          <div class="modal-body">
+            <input type="text" name="plan_name" value="{{ p.plan_name }}" class="form-control mb-2" required>
+            <input type="number" name="price_per_month" value="{{ p.price_per_month }}" class="form-control mb-2" step="0.01" min="0" required>
+            <input type="number" name="classes_per_month" value="{{ p.classes_per_month }}" class="form-control mb-2" min="1" required>
+            <textarea name="description" class="form-control">{{ p.description|default:'' }}</textarea>
+          </div>
+          <div class="modal-footer"><button type="submit" class="btn btn-primary">Save</button></div>
+        </form>
+      </div></div>
+    </div>
+    <div class="modal fade" id="deletePlan{{ p.planid }}" tabindex="-1">
+      <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Confirm Delete</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">Delete plan <strong>{{ p.plan_name }}</strong>?</div>
+        <div class="modal-footer">
+          <form method="post">{% csrf_token %}
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="plan_id" value="{{ p.planid }}">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger">Delete</button>
+          </form>
+        </div>
+      </div></div>
+    </div>
+    {% empty %}<tr><td colspan="5">No plans yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

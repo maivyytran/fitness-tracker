@@ -1,0 +1,26 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<h2>Dashboard</h2>
+<div class="row mb-4">
+  <div class="col-md-3"><div class="card text-white bg-primary p-3 text-center"><h5>Active Members</h5><h2>{{ active_members }}</h2></div></div>
+  <div class="col-md-3"><div class="card text-white bg-success p-3 text-center"><h5>Classes</h5><h2>{{ total_classes }}</h2></div></div>
+  <div class="col-md-3"><div class="card text-white bg-info p-3 text-center"><h5>Instructors</h5><h2>{{ total_instructors }}</h2></div></div>
+  <div class="col-md-3"><div class="card text-white bg-warning p-3 text-center"><h5>Registrations This Month</h5><h2>{{ registrations_this_month }}</h2></div></div>
+</div>
+<h4>Recent Registrations</h4>
+<table class="table table-striped">
+  <thead><tr><th>Member</th><th>Class</th><th>Day</th><th>Time</th><th>Registered</th></tr></thead>
+  <tbody>
+    {% for r in recent_registrations %}
+    <tr>
+      <td>{{ r.memberid.first_name }} {{ r.memberid.last_name }}</td>
+      <td>{{ r.classid.class_name }}</td>
+      <td>{{ r.classid.day_of_week }}</td>
+      <td>{{ r.classid.class_time }}</td>
+      <td>{{ r.registered_at|date:"Y-m-d H:i" }}</td>
+    </tr>
+    {% empty %}<tr><td colspan="5">No registrations yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
