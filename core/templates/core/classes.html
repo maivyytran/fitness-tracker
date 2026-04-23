@@ -1,1 +1,94 @@
-
+{% extends 'core/base.html' %}
+{% block content %}
+<h2>Manage Classes</h2>
+<form method="post" class="mb-4">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="add">
+  <div class="row g-2">
+    <div class="col-md-3"><input type="text" name="class_name" class="form-control" placeholder="Class Name" required></div>
+    <div class="col-md-2">
+      <select name="instructorid" class="form-select" required>
+        <option value="">Instructor</option>
+        {% for i in instructors %}<option value="{{ i.instructorid }}">{{ i.first_name }} {{ i.last_name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select name="day_of_week" class="form-select">
+        <option>Monday</option>
+        <option>Tuesday</option>
+        <option>Wednesday</option>
+        <option>Thursday</option>
+        <option>Friday</option>
+        <option>Saturday</option>
+        <option>Sunday</option>
+      </select>
+    </div>
+    <div class="col-md-2"><input type="text" name="class_time" class="form-control" placeholder="e.g. 9:00 AM" required></div>
+    <div class="col-md-1"><input type="number" name="capacity" class="form-control" placeholder="Cap" min="1" required></div>
+    <div class="col-md-1"><input type="number" name="duration" class="form-control" placeholder="Min" min="1" required></div>
+    <div class="col-md-1"><button type="submit" class="btn btn-primary w-100">Add</button></div>
+  </div>
+</form>
+<table class="table table-striped">
+  <thead><tr><th>Class</th><th>Instructor</th><th>Day</th><th>Time</th><th>Capacity</th><th>Duration</th><th>Actions</th></tr></thead>
+  <tbody>
+    {% for c in classes %}
+    <tr>
+      <td>{{ c.class_name }}</td>
+      <td>{{ c.instructorid.first_name }} {{ c.instructorid.last_name }}</td>
+      <td>{{ c.day_of_week }}</td>
+      <td>{{ c.class_time }}</td>
+      <td>{{ c.capacity }}</td>
+      <td>{{ c.duration }} min</td>
+      <td>
+        <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editClass{{ c.classid }}">Edit</button>
+        <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteClass{{ c.classid }}">Delete</button>
+      </td>
+    </tr>
+    <div class="modal fade" id="editClass{{ c.classid }}" tabindex="-1">
+      <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Edit Class</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <form method="post">{% csrf_token %}
+          <input type="hidden" name="action" value="edit">
+          <input type="hidden" name="class_id" value="{{ c.classid }}">
+          <div class="modal-body">
+            <input type="text" name="class_name" value="{{ c.class_name }}" class="form-control mb-2" required>
+            <select name="instructorid" class="form-select mb-2" required>
+              {% for i in instructors %}<option value="{{ i.instructorid }}" {% if i.instructorid == c.instructorid.instructorid %}selected{% endif %}>{{ i.first_name }} {{ i.last_name }}</option>{% endfor %}
+            </select>
+            <select name="day_of_week" class="form-select mb-2">
+              <option {% if c.day_of_week == "Monday" %}selected{% endif %}>Monday</option>
+              <option {% if c.day_of_week == "Tuesday" %}selected{% endif %}>Tuesday</option>
+              <option {% if c.day_of_week == "Wednesday" %}selected{% endif %}>Wednesday</option>
+              <option {% if c.day_of_week == "Thursday" %}selected{% endif %}>Thursday</option>
+              <option {% if c.day_of_week == "Friday" %}selected{% endif %}>Friday</option>
+              <option {% if c.day_of_week == "Saturday" %}selected{% endif %}>Saturday</option>
+              <option {% if c.day_of_week == "Sunday" %}selected{% endif %}>Sunday</option>
+            </select>
+            <input type="text" name="class_time" value="{{ c.class_time }}" class="form-control mb-2" required>
+            <input type="number" name="capacity" value="{{ c.capacity }}" class="form-control mb-2" min="1" required>
+            <input type="number" name="duration" value="{{ c.duration }}" class="form-control" min="1" required>
+          </div>
+          <div class="modal-footer"><button type="submit" class="btn btn-primary">Save</button></div>
+        </form>
+      </div></div>
+    </div>
+    <div class="modal fade" id="deleteClass{{ c.classid }}" tabindex="-1">
+      <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Confirm Delete</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">Delete <strong>{{ c.class_name }}</strong>? This will also remove all registrations for this class.</div>
+        <div class="modal-footer">
+          <form method="post">{% csrf_token %}
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="class_id" value="{{ c.classid }}">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger">Delete</button>
+          </form>
+        </div>
+      </div></div>
+    </div>
+    {% empty %}<tr><td colspan="7">No classes yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
