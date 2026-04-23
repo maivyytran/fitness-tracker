@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-oallya4x8ky5@c+ysr1%%$%$+41^7@+*t&t3=o-=@gi5xw#d2@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['maivytran.pythonanywhere.com']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -74,10 +74,19 @@ WSGI_APPLICATION = "fitness_tracker.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+import os
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'retool'),
+        'USER': os.environ.get('DB_USER', 'retool'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'npg_Hb6BvO8yPgDw'),
+        'HOST': os.environ.get('DB_HOST', 'ep-bold-morning-aksy2bj3-pooler.c-3.us-west-2.retooldb.com'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
     }
 }
 
